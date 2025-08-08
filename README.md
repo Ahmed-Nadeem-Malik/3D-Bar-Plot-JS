@@ -8,7 +8,7 @@ Creates 3D rectangular bars in a 3D space where each bar represents a data point
 
 ## Requirements
 
-- Plotly.js library
+- Plotly.js library or CDN
 - Modern web browser
 
 ## Basic Usage
