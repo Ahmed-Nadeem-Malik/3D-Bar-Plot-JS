@@ -48,8 +48,8 @@ Each data point needs:
 
 ## Files
 
-- `3d-bar-chart.js` - Main library
-- `test.html` - Simple test page
+- `main.js` - Main library
+- `example.html` - Simple test page
 - `README.md` - This file
 
 ## Example
