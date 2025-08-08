@@ -54,7 +54,7 @@ Each data point needs:
 
 ## Example
 
-See `test.html` for a working example with sample data.
+See `example.html` for a working example with sample data.
 
 ## License
 
