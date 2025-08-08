@@ -58,4 +58,4 @@ See `test.html` for a working example with sample data.
 
 ## License
 
-MIT
+MIT liscense just like plotly.js, share it around and change it 
