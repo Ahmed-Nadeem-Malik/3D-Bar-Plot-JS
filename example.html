@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>3D Bar Chart Test</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/plotly.js/2.26.0/plotly.min.js"></script>
+</head>
+<body>
+    <h1>3D Bar Chart Test</h1>
+    
+    <button onclick="generateRandomData()">Random Data</button>
+    <button onclick="loadSampleData()">Sample Data</button>
+    <button onclick="loadBusinessData()">Business Data</button>
+    
+    <div id="chart3d" style="width: 800px; height: 600px;"></div>
+    
+    <p>Points: <span id="pointCount">0</span> | Last clicked: <span id="lastClicked">None</span></p>
+
+    <script>
+        // 3D Bar Chart Functions
+        function createBarCorners(point, width = 0.05, depth = 1.0) {
+            const { x, z: yPos, y: height } = point;
+            const halfWidth = width / 2;
+            const halfDepth = depth / 2;
+            
+            return {
+                x: [x - halfWidth, x + halfWidth, x + halfWidth, x - halfWidth,
+                    x - halfWidth, x + halfWidth, x + halfWidth, x - halfWidth],
+                y: [yPos - halfDepth, yPos - halfDepth, yPos + halfDepth, yPos + halfDepth,
+                    yPos - halfDepth, yPos - halfDepth, yPos + halfDepth, yPos + halfDepth],
+                z: [0, 0, 0, 0, height, height, height, height]
+            };
+        }
+
+        function createBarMesh(point, index) {
+            const corners = createBarCorners(point);
+            
+            return {
+                type: 'mesh3d',
+                x: corners.x,
+                y: corners.y, 
+                z: corners.z,
+                i: [7, 0, 0, 0, 4, 4, 6, 6, 4, 0, 3, 2],
+                j: [3, 4, 1, 2, 5, 6, 5, 2, 0, 1, 6, 3],
+                k: [0, 7, 2, 3, 6, 7, 1, 1, 5, 5, 7, 6],
+                color: point.color,
+                opacity: 1.0,
+                showlegend: false,
+                hoverinfo: 'text',
+                text: point.hoverText || `${point.label}: ${point.y}`,
+                name: `bar_${index}`
+            };
+        }
+
+        function createBarWireframe(point) {
+            const corners = createBarCorners(point);
+            const { x, y, z } = corners;
+            
+            return {
+                type: 'scatter3d',
+                mode: 'lines',
+                x: [x[0], x[1], x[2], x[3], x[0], null,
+                    x[4], x[5], x[6], x[7], x[4], null,
+                    x[0], x[4], null, x[1], x[5], null,
+                    x[2], x[6], null, x[3], x[7]],
+                y: [y[0], y[1], y[2], y[3], y[0], null,
+                    y[4], y[5], y[6], y[7], y[4], null,
+                    y[0], y[4], null, y[1], y[5], null,
+                    y[2], y[6], null, y[3], y[7]],
+                z: [z[0], z[1], z[2], z[3], z[0], null,
+                    z[4], z[5], z[6], z[7], z[4], null,
+                    z[0], z[4], null, z[1], z[5], null,
+                    z[2], z[6], null, z[3], z[7]],
+                line: { color: '#000000', width: 2 },
+                showlegend: false,
+                hoverinfo: 'skip',
+                name: 'wireframe'
+            };
+        }
+
+        function create3DBarChart(data, containerId) {
+            if (!data || data.length === 0) return;
+            
+            const traces = [];
+            data.forEach((point, index) => {
+                traces.push(createBarMesh(point, index));
+                traces.push(createBarWireframe(point));
+            });
+            
+            const layout = {
+                scene: {
+                    xaxis: { title: 'X Axis' },
+                    yaxis: { title: 'Y Axis' },
+                    zaxis: { title: 'Values' },
+                    camera: { eye: { x: 1.5, y: 1.5, z: 1.5 } }
+                },
+                margin: { l: 0, r: 0, t: 0, b: 0 }
+            };
+            
+            const config = { responsive: true };
+            
+            Plotly.newPlot(containerId, traces, layout, config).then(() => {
+                document.getElementById('pointCount').textContent = data.length;
+                
+                document.getElementById(containerId).on('plotly_click', function(plotData) {
+                    if (plotData.points && plotData.points.length > 0) {
+                        const point = plotData.points[0];
+                        const traceName = point.data.name;
+                        
+                        if (traceName && traceName.startsWith('bar_')) {
+                            const dataIndex = parseInt(traceName.split('_')[1]);
+                            const clickedData = data[dataIndex];
+                            document.getElementById('lastClicked').textContent = clickedData.label;
+                        }
+                    }
+                });
+            });
+        }
+
+        // Test Data Functions
+        function generateRandomData() {
+            const data = [];
+            const colors = ['#FF0000', '#00FF00', '#0000FF', '#FFFF00', '#FF00FF'];
+            
+            for (let i = 0; i < 5; i++) {
+                data.push({
+                    x: i + 1,
+                    y: Math.random() * 100,
+                    z: Math.random() * 100,
+                    color: colors[i],
+                    label: `Item ${i + 1}`
+                });
+            }
+            
+            create3DBarChart(data, 'chart3d');
+        }
+
+        function loadSampleData() {
+            const data = [
+                { x: 1, y: 85, z: 45, color: '#00AA00', label: 'Sample A' },
+                { x: 2, y: 60, z: 80, color: '#FFAA00', label: 'Sample B' },
+                { x: 3, y: 75, z: 30, color: '#AA0000', label: 'Sample C' },
+                { x: 4, y: 40, z: 90, color: '#AA00AA', label: 'Sample D' }
+            ];
+            
+            create3DBarChart(data, 'chart3d');
+        }
+
+        function loadBusinessData() {
+            const data = [
+                { x: 1, y: 95, z: 87, color: '#008800', label: 'Q1' },
+                { x: 2, y: 88, z: 91, color: '#008800', label: 'Q2' },
+                { x: 3, y: 76, z: 82, color: '#888800', label: 'Q3' },
+                { x: 4, y: 82, z: 79, color: '#888800', label: 'Q4' }
+            ];
+            
+            create3DBarChart(data, 'chart3d');
+        }
+
+        // Load sample data on page load
+        window.onload = function() {
+            loadSampleData();
+        };
+    </script>
+</body>
+</html>
